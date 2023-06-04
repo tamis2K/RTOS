@@ -20,3 +20,94 @@ Um RTOS é usado em uma variedade de sistemas embarcados, como sistemas de contr
 
 
 </br>
+<h2>Código</h2>
+  <hr></hr>
+
+```javascript
+#include <Arduino.h>
+#include <Arduino_FreeRTOS.h>
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(12,11,10,9,8,7);
+
+#define LED_PIN_2 5
+#define LED_PIN_1 4
+
+
+void TaskReadTemperature(void *pvParameters);
+
+volatile float temperature = 0.0;
+void setup() {
+ Serial.begin(9600);
+ lcd.begin(16,2);
+
+void TaskBlink1(void *pvParameters);
+pinMode(LED_PIN_1, OUTPUT);
+
+void TaskBlink2(void *pvParameters);
+pinMode(LED_PIN_2, OUTPUT);
+
+xTaskCreate(
+  TaskBlink1, 
+  "Blink1",
+  128,   
+  NULL,
+  2, 
+  NULL);
+
+ xTaskCreate(
+ TaskReadTemperature,
+ "ReadTemperature",
+ 128,
+ NULL,
+ 3,
+ NULL );
+
+ xTaskCreate(
+  TaskBlink2, 
+  "Blink2",
+  128,   
+  NULL,
+  1, 
+  NULL);
+
+}
+
+void loop() {
+ // nada aqui!
+}
+void TaskReadTemperature(void *pvParameters) {
+ (void) pvParameters;
+ float sensorValue = 0.0;
+ for (;;) {
+ // Aqui você normalmente leria o valor do sensor de temperatura.
+ // Por simplicidade, vamos apenas simular um sensor variando a
+ sensorValue = -10.0 + (rand() % 51); // gera um número aleatório entre
+ temperature = sensorValue;
+ vTaskDelay(500 / portTICK_PERIOD_MS); // aguarda por 2 segundos
+ lcd.setCursor(0,0);
+ lcd.print("Temp: ");
+ lcd.print(temperature);
+ lcd.print(" C");
+ // vTaskDelay(1000 / portTICK_PERIOD_MS);
+ }
+}
+void TaskBlink1(void *pvParameters){
+  (void) pvParameters;
+  for (;;){
+    digitalWrite(LED_PIN_1, HIGH);
+    vTaskDelay(500 / portTICK_PERIOD_MS); 
+    digitalWrite(LED_PIN_1, LOW); 
+    vTaskDelay(500 / portTICK_PERIOD_MS);
+  }
+}
+
+void TaskBlink2(void *pvParameters){
+  (void) pvParameters;
+  for (;;){
+    if (temperature == 26){
+    digitalWrite(LED_PIN_2, HIGH);
+    }
+  }
+}
+```
